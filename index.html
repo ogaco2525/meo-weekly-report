@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2f6f4f">
+<title>MEO週報メーカー</title>
+<style>
+  :root{
+    --bg:#f5f4f0; --card:#ffffff; --line:#e3e0d8; --ink:#2b2b2b;
+    --sub:#7a766c; --accent:#2f6f4f; --accent-d:#255a40; --ok:#1f8a4c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+    line-height:1.6;-webkit-text-size-adjust:100%}
+  header{background:var(--accent);color:#fff;padding:18px 16px;position:sticky;top:0;z-index:10;
+    box-shadow:0 2px 8px rgba(0,0,0,.12)}
+  header h1{margin:0;font-size:18px;font-weight:700}
+  header p{margin:4px 0 0;font-size:12px;opacity:.85}
+  .wrap{max-width:680px;margin:0 auto;padding:16px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+  label{display:block;font-size:13px;color:var(--sub);margin:0 0 4px}
+  input[type=date],input[type=text],input[type=number]{
+    width:100%;padding:11px 12px;font-size:16px;border:1px solid var(--line);
+    border-radius:10px;background:#fff;color:var(--ink)}
+  input:focus{outline:none;border-color:var(--accent)}
+  .row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+  .row > div{flex:1;min-width:120px}
+  .btn{appearance:none;border:none;border-radius:10px;padding:11px 14px;font-size:14px;
+    font-weight:700;cursor:pointer;background:var(--accent);color:#fff}
+  .btn:active{background:var(--accent-d)}
+  .btn.ghost{background:#eef0ec;color:var(--accent-d)}
+  .meta{font-size:13px;color:var(--sub);margin-top:10px}
+  .meta b{color:var(--ink)}
+  .card h2{font-size:15px;margin:0 0 2px;display:flex;align-items:center;gap:8px}
+  .tag{font-size:11px;font-weight:700;color:#fff;background:var(--accent);
+    border-radius:999px;padding:2px 9px}
+  .card .desc{font-size:12px;color:var(--sub);margin:0 0 12px}
+  .fields{margin-bottom:12px}
+  .fields .row{margin-bottom:8px}
+  pre{white-space:pre-wrap;word-break:break-word;background:#faf9f6;border:1px solid var(--line);
+    border-radius:10px;padding:12px;margin:0;font-size:13px;font-family:inherit;max-height:none}
+  .cardfoot{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:10px}
+  .copied{font-size:13px;color:var(--ok);font-weight:700;opacity:0;transition:opacity .2s}
+  .copied.show{opacity:1}
+  .hint{font-size:11px;color:var(--sub);margin-top:6px}
+  details summary{cursor:pointer;font-size:13px;color:var(--accent-d);font-weight:700}
+  footer{text-align:center;font-size:11px;color:var(--sub);padding:8px 0 28px}
+</style>
+</head>
+<body>
+<header>
+  <h1>MEO週報メーカー</h1>
+  <p>送付日を選ぶと日付と「○月△週目」を自動で埋める</p>
+</header>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="row">
+      <div>
+        <label for="sendDate">送付日（月曜）</label>
+        <input type="date" id="sendDate">
+      </div>
+      <div style="flex:0 0 auto">
+        <button class="btn ghost" id="thisMonday">今週の月曜</button>
+      </div>
+    </div>
+    <div class="meta" id="periodInfo"></div>
+    <div class="hint">※ 月曜以外を選んでもその週の月曜に自動補正します</div>
+  </div>
+
+  <div id="cards"></div>
+
+  <footer>店舗名・宛名・口コミ件数はこの端末にだけ保存されます（サーバー送信なし）</footer>
+</div>
+
+<script>
+const WD = ['日','月','火','水','木','金','土'];
+
+function snapMonday(d){
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const g = x.getDay();
+  x.setDate(x.getDate() + (g===0 ? -6 : 1-g));
+  return x;
+}
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function fmt(d){ return (d.getMonth()+1)+'/'+d.getDate()+'（'+WD[d.getDay()]+'）'; }
+function nthMonday(d){ return Math.floor((d.getDate()-1)/7)+1; }
+
+// state: 送付日(月) -> period = [送付日-7(月) .. 送付日-1(日)]
+function compute(sendMonday){
+  const start = addDays(sendMonday, -7);            // 報告期間の月曜
+  const days = {};
+  ['月','火','水','木','金'].forEach((w,i)=>{ days[w] = fmt(addDays(start, i)); });
+  const week = (start.getMonth()+1)+'月'+nthMonday(start)+'週目';
+  return {start, sendMonday, days, week};
+}
+
+const store = {
+  get(k,def){ try{ return localStorage.getItem('mw_'+k) ?? def; }catch(e){ return def; } },
+  set(k,v){ try{ localStorage.setItem('mw_'+k, v); }catch(e){} }
+};
+
+// テンプレ定義
+const patterns = [
+  {
+    id:'p1', tag:'パターン1', title:'週2回投稿店舗',
+    desc:'四六八ちゃ個室別館 / 一休 / しばた歯科 / はぁとねいる足利店',
+    inputs:[{key:'name1', label:'宛名', ph:'@ 様 のままでも可', def:'@'}],
+    build:(c,v)=>{
+      const n = (v.name1||'@').trim() || '@';
+      return `${n} 様
+
+お世話になっております。
+${c.week}のMEO対策の進捗をご報告いたします。
+
+■投稿・口コミ管理
+下記日程で投稿と口コミ管理を実施いたしました。
+
+・投稿
+${c.days['火']}
+${c.days['金']}
+
+・口コミ管理
+${c.days['月']}
+${c.days['火']}
+${c.days['木']}
+${c.days['金']}
+
+■進捗のご報告
+
+・対策キーワードを含めたコンテンツを週2回投稿いたしました。
+
+以上となります。
+ご不明な点がございましたらお気軽にご相談くださいませ！
+引き続き何卒よろしくお願い申し上げます🙇‍♀️
+(こちら問題なければご返信には及びません)`;
+    }
+  },
+  {
+    id:'p2', tag:'パターン2', title:'週3回投稿店舗',
+    desc:'シーシャカフェ&バー fiction 新宿',
+    inputs:[{key:'name2', label:'宛名', ph:'@ 様 のままでも可', def:'@'}],
+    build:(c,v)=>{
+      const n = (v.name2||'@').trim() || '@';
+      return `${n} 様
+
+お世話になっております。
+${c.week}のMEO対策の進捗をご報告いたします。
+
+■投稿・口コミ管理
+下記日程で投稿と口コミ管理を実施いたしました。
+
+・投稿
+${c.days['月']}
+${c.days['水']}
+${c.days['金']}
+
+・口コミ管理
+${c.days['月']}
+${c.days['火']}
+${c.days['木']}
+${c.days['金']}
+
+■進捗のご報告
+・対策キーワードを含めたコンテンツを週3回投稿いたしました。
+・ユーザー様からの新規口コミに対して、自然な形で対策キーワードを含めた返信をさせていただきました
+
+以上となります。
+
+ご不明な点がございましたらお気軽にご相談くださいませ！
+引き続き何卒よろしくお願い申し上げます🙇‍♀️
+(こちら問題なければご返信には及びません)`;
+    }
+  },
+  {
+    id:'p3', tag:'パターン3', title:'あて鮨ぎんりん（2店舗分）',
+    desc:'あて鮨ぎんりん + 水産卸直営酒場ぎんりん',
+    inputs:[{key:'name3', label:'宛名', ph:'担当者名 様', def:''}],
+    build:(c,v)=>{
+      const n = (v.name3||'').trim() || '〇〇';
+      return `${n} 様
+
+お世話になっております。
+${c.week}のMEO対策の進捗をご報告いたします。
+
+■投稿・口コミ管理
+あて鮨ぎんりん様、水産卸直営酒場ぎんりん様ともに
+下記日程で投稿と口コミ管理を実施いたしました。
+
+・投稿
+${c.days['火']}
+${c.days['金']}
+
+・口コミ管理
+${c.days['月']}
+${c.days['火']}
+${c.days['木']}
+${c.days['金']}
+
+■進捗のご報告
+あて鮨ぎんりん様、水産卸直営酒場ぎんりん様ともに
+下記の内容で作業を実施いたしました
+
+・対策キーワードを含めたコンテンツを週2回投稿いたしました。
+・ユーザー様からの新規口コミに対して、自然な形で対策キーワードを含めた返信をさせていただきました
+
+以上となります。
+ご不明な点がございましたらお気軽にご相談くださいませ！
+引き続き何卒よろしくお願い申し上げます🙇‍♀️
+(こちら問題なければご返信には及びません)`;
+    }
+  },
+  {
+    id:'p4', tag:'パターン4', title:'On The Lash Shibuya Tokyo 専用',
+    desc:'口コミ数の変動付き',
+    inputs:[
+      {key:'name4', label:'宛名', ph:'@ 様 のままでも可', def:'@'},
+      {key:'rb', label:'口コミ数（前）', ph:'例: 120', def:'', type:'number'},
+      {key:'ra', label:'口コミ数（後）', ph:'例: 125', def:'', type:'number'}
+    ],
+    build:(c,v)=>{
+      const n = (v.name4||'@').trim() || '@';
+      const rb = (v.rb||'').trim() || '⚪︎';
+      const ra = (v.ra||'').trim() || '⚪︎';
+      return `${n} 様
+
+お世話になっております。
+${c.week}のMEO対策の進捗をご報告いたします。
+
+■投稿・口コミ管理
+下記日程で投稿と口コミ管理を実施いたしました。
+
+・投稿
+${c.days['火']}
+${c.days['金']}
+
+・口コミ管理
+${c.days['月']}
+${c.days['火']}
+${c.days['木']}
+${c.days['金']}
+
+■進捗のご報告
+・対策キーワードを含めたコンテンツを週2回投稿いたしました。
+
+■口コミ数の変動
+${rb}件 → ${ra}件
+
+以上となります。
+ご不明な点がございましたらお気軽にご相談くださいませ！
+引き続き何卒よろしくお願い申し上げます🙇‍♀️
+(こちら問題なければご返信には及びません)`;
+    }
+  }
+];
+
+let current;
+
+function render(){
+  current = compute(snapMonday(parseDate(document.getElementById('sendDate').value)));
+  const c = current;
+  document.getElementById('periodInfo').innerHTML =
+    `報告対象期間 <b>${c.start.getMonth()+1}/${c.start.getDate()}（月）〜${addDays(c.start,6).getMonth()+1}/${addDays(c.start,6).getDate()}（日）</b><br>週ラベル <b>${c.week}</b>`;
+
+  patterns.forEach(p=>{
+    const v = {};
+    p.inputs.forEach(inp=>{ const el=document.getElementById(p.id+'_'+inp.key); if(el) v[inp.key]=el.value; });
+    const pre = document.getElementById(p.id+'_pre');
+    if(pre) pre.textContent = p.build(c, v);
+  });
+}
+
+function parseDate(str){
+  if(str){ const [y,m,d]=str.split('-').map(Number); return new Date(y,m-1,d); }
+  return new Date();
+}
+function toInput(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function buildCards(){
+  const root = document.getElementById('cards');
+  patterns.forEach(p=>{
+    const card = document.createElement('div');
+    card.className = 'panel card';
+    let fields = '';
+    p.inputs.forEach(inp=>{
+      const saved = store.get(inp.key, inp.def);
+      fields += `<div style="flex:1"><label>${inp.label}</label>
+        <input type="${inp.type||'text'}" id="${p.id}_${inp.key}" placeholder="${inp.ph}" value="${saved.replace(/"/g,'&quot;')}"></div>`;
+    });
+    card.innerHTML = `
+      <h2><span class="tag">${p.tag}</span>${p.title}</h2>
+      <p class="desc">${p.desc}</p>
+      <div class="fields"><div class="row">${fields}</div></div>
+      <pre id="${p.id}_pre"></pre>
+      <div class="cardfoot">
+        <span class="copied" id="${p.id}_msg">コピーしました</span>
+        <button class="btn" id="${p.id}_btn">本文をコピー</button>
+      </div>`;
+    root.appendChild(card);
+
+    p.inputs.forEach(inp=>{
+      const el = document.getElementById(p.id+'_'+inp.key);
+      el.addEventListener('input', ()=>{ store.set(inp.key, el.value); render(); });
+    });
+    document.getElementById(p.id+'_btn').addEventListener('click', ()=>copy(p.id));
+  });
+}
+
+async function copy(id){
+  const txt = document.getElementById(id+'_pre').textContent;
+  try{
+    await navigator.clipboard.writeText(txt);
+  }catch(e){
+    const ta=document.createElement('textarea'); ta.value=txt;
+    ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta);
+    ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+  }
+  const msg=document.getElementById(id+'_msg'); msg.classList.add('show');
+  setTimeout(()=>msg.classList.remove('show'),1400);
+}
+
+// init
+document.getElementById('sendDate').value = toInput(snapMonday(new Date()));
+buildCards();
+render();
+document.getElementById('sendDate').addEventListener('change', ()=>{
+  const snapped = snapMonday(parseDate(document.getElementById('sendDate').value));
+  document.getElementById('sendDate').value = toInput(snapped);
+  render();
+});
+document.getElementById('thisMonday').addEventListener('click', ()=>{
+  document.getElementById('sendDate').value = toInput(snapMonday(new Date()));
+  render();
+});
+</script>
+</body>
+</html>
