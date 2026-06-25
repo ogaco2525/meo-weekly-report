@@ -9,7 +9,7 @@
 
   :root {
     --blue:    #4285F4;
-    --green:   #34A853;
+    --green:   #344853;
     --yellow:  #FBBC05;
     --red:     #EA4335;
     --white:   #FFFFFF;
@@ -601,7 +601,8 @@ const LINE_URL = 'https://lin.ee/XXXXXXXX'; // ← LINEのURLに差し替え
 
 // 選択肢クリック
 document.querySelectorAll('.option-label').forEach(label => {
-  label.addEventListener('click', function() {
+  label.addEventListener('click', function(e) {
+    e.preventDefault();
     const input = this.querySelector('input');
     const name = input.name;
 
