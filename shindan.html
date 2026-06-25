@@ -484,11 +484,11 @@
       <div class="q-text">お店の業種を教えてください</div>
       <div class="q-note">1つ選んでください</div>
       <div class="options" id="opts-q1">
-        <label class="option-label"><input type="radio" name="q1" value="food"><span class="opt-icon"></span>飲食店（カフェ・ラーメン・居酒屋など）</label>
-        <label class="option-label"><input type="radio" name="q1" value="beauty"><span class="opt-icon"></span>美容・サロン（美容室・ネイル・まつ毛など）</label>
-        <label class="option-label"><input type="radio" name="q1" value="medical"><span class="opt-icon"></span>医療・歯科・整体・マッサージ</label>
-        <label class="option-label"><input type="radio" name="q1" value="other_service"><span class="opt-icon"></span>その他のサービス業（リラクゼーション・学習塾など）</label>
-        <label class="option-label"><input type="radio" name="q1" value="not_local"><span class="opt-icon"></span>製造業・EC・完全オフィスワーク</label>
+        <div class="option-label" data-q="1" data-type="radio" data-value="food"><span class="opt-icon"></span>飲食店（カフェ・ラーメン・居酒屋など）</div>
+        <div class="option-label" data-q="1" data-type="radio" data-value="beauty"><span class="opt-icon"></span>美容・サロン（美容室・ネイル・まつ毛など）</div>
+        <div class="option-label" data-q="1" data-type="radio" data-value="medical"><span class="opt-icon"></span>医療・歯科・整体・マッサージ</div>
+        <div class="option-label" data-q="1" data-type="radio" data-value="other_service"><span class="opt-icon"></span>その他のサービス業（リラクゼーション・学習塾など）</div>
+        <div class="option-label" data-q="1" data-type="radio" data-value="not_local"><span class="opt-icon"></span>製造業・EC・完全オフィスワーク</div>
       </div>
       <div class="nav">
         <button class="btn btn-next" id="next-q1" disabled onclick="goNext(1)">次へ →</button>
@@ -501,11 +501,11 @@
       <div class="q-text">Googleマップでの集客について、当てはまるものは？</div>
       <div class="q-note">複数選択OK</div>
       <div class="options" id="opts-q2">
-        <label class="option-label checkbox"><input type="checkbox" name="q2" value="unknown"><span class="opt-icon"></span>マップから来てくれているのか、よくわからない</label>
-        <label class="option-label checkbox"><input type="checkbox" name="q2" value="low_rank"><span class="opt-icon"></span>競合店より自店の順位が低い気がする</label>
-        <label class="option-label checkbox"><input type="checkbox" name="q2" value="no_new"><span class="opt-icon"></span>立地はいいのに、新規客がなかなか来ない</label>
-        <label class="option-label checkbox"><input type="checkbox" name="q2" value="less_contact"><span class="opt-icon"></span>Googleからの問い合わせや電話が少ない</label>
-        <label class="option-label checkbox"><input type="checkbox" name="q2" value="ok"><span class="opt-icon"></span>とくに不満はない</label>
+        <div class="option-label checkbox" data-q="2" data-type="checkbox" data-value="unknown"><span class="opt-icon"></span>マップから来てくれているのか、よくわからない</div>
+        <div class="option-label checkbox" data-q="2" data-type="checkbox" data-value="low_rank"><span class="opt-icon"></span>競合店より自店の順位が低い気がする</div>
+        <div class="option-label checkbox" data-q="2" data-type="checkbox" data-value="no_new"><span class="opt-icon"></span>立地はいいのに、新規客がなかなか来ない</div>
+        <div class="option-label checkbox" data-q="2" data-type="checkbox" data-value="less_contact"><span class="opt-icon"></span>Googleからの問い合わせや電話が少ない</div>
+        <div class="option-label checkbox" data-q="2" data-type="checkbox" data-value="ok"><span class="opt-icon"></span>とくに不満はない</div>
       </div>
       <div class="nav">
         <button class="btn btn-back" onclick="goBack(2)">← 戻る</button>
@@ -519,11 +519,11 @@
       <div class="q-text">Googleビジネスプロフィールで、今やっていることをすべて選んでください</div>
       <div class="q-note">複数選択OK（何もできていない場合は最後を選んでください）</div>
       <div class="options" id="opts-q3">
-        <label class="option-label checkbox"><input type="checkbox" name="q3" value="verified"><span class="opt-icon"></span>オーナー確認（青いチェック）が済んでいる</label>
-        <label class="option-label checkbox"><input type="checkbox" name="q3" value="hours"><span class="opt-icon"></span>営業時間・定休日を正確に設定している</label>
-        <label class="option-label checkbox"><input type="checkbox" name="q3" value="photos"><span class="opt-icon"></span>店舗写真を10枚以上載せている</label>
-        <label class="option-label checkbox"><input type="checkbox" name="q3" value="review"><span class="opt-icon"></span>口コミに全件返信している</label>
-        <label class="option-label checkbox" id="q3-none"><input type="checkbox" name="q3" value="none"><span class="opt-icon"></span>どれもできていない・よくわからない</label>
+        <div class="option-label checkbox" data-q="3" data-type="checkbox" data-value="verified"><span class="opt-icon"></span>オーナー確認（青いチェック）が済んでいる</div>
+        <div class="option-label checkbox" data-q="3" data-type="checkbox" data-value="hours"><span class="opt-icon"></span>営業時間・定休日を正確に設定している</div>
+        <div class="option-label checkbox" data-q="3" data-type="checkbox" data-value="photos"><span class="opt-icon"></span>店舗写真を10枚以上載せている</div>
+        <div class="option-label checkbox" data-q="3" data-type="checkbox" data-value="review"><span class="opt-icon"></span>口コミに全件返信している</div>
+        <div class="option-label checkbox" data-q="3" data-type="checkbox" data-value="none"><span class="opt-icon"></span>どれもできていない・よくわからない</div>
       </div>
       <div class="nav">
         <button class="btn btn-back" onclick="goBack(3)">← 戻る</button>
@@ -537,11 +537,11 @@
       <div class="q-text">Googleビジネスプロフィールへの投稿は、どのくらいやっていますか？</div>
       <div class="q-note">1つ選んでください</div>
       <div class="options" id="opts-q4">
-        <label class="option-label"><input type="radio" name="q4" value="weekly"><span class="opt-icon"></span>週1回以上、定期的に投稿している</label>
-        <label class="option-label"><input type="radio" name="q4" value="monthly"><span class="opt-icon"></span>月1〜2回は更新している</label>
-        <label class="option-label"><input type="radio" name="q4" value="rarely"><span class="opt-icon"></span>数ヶ月に一度、気が向いたら更新する</label>
-        <label class="option-label"><input type="radio" name="q4" value="never"><span class="opt-icon"></span>ほとんど投稿していない</label>
-        <label class="option-label"><input type="radio" name="q4" value="unknown"><span class="opt-icon"></span>投稿機能があることを知らなかった</label>
+        <div class="option-label" data-q="4" data-type="radio" data-value="weekly"><span class="opt-icon"></span>週1回以上、定期的に投稿している</div>
+        <div class="option-label" data-q="4" data-type="radio" data-value="monthly"><span class="opt-icon"></span>月1〜2回は更新している</div>
+        <div class="option-label" data-q="4" data-type="radio" data-value="rarely"><span class="opt-icon"></span>数ヶ月に一度、気が向いたら更新する</div>
+        <div class="option-label" data-q="4" data-type="radio" data-value="never"><span class="opt-icon"></span>ほとんど投稿していない</div>
+        <div class="option-label" data-q="4" data-type="radio" data-value="unknown"><span class="opt-icon"></span>投稿機能があることを知らなかった</div>
       </div>
       <div class="nav">
         <button class="btn btn-back" onclick="goBack(4)">← 戻る</button>
@@ -555,10 +555,10 @@
       <div class="q-text">MEO対策について、今どんな状態ですか？</div>
       <div class="q-note">1つ選んでください</div>
       <div class="options" id="opts-q5">
-        <label class="option-label"><input type="radio" name="q5" value="now"><span class="opt-icon"></span>すぐにでも取り組みたい</label>
-        <label class="option-label"><input type="radio" name="q5" value="cost"><span class="opt-icon"></span>興味はあるけど、費用感や内容をまず知りたい</label>
-        <label class="option-label"><input type="radio" name="q5" value="diy"><span class="opt-icon"></span>自分でやろうと思っているが、何をすればいいかわからない</label>
-        <label class="option-label"><input type="radio" name="q5" value="later"><span class="opt-icon"></span>今すぐではないが、今後検討したい</label>
+        <div class="option-label" data-q="5" data-type="radio" data-value="now"><span class="opt-icon"></span>すぐにでも取り組みたい</div>
+        <div class="option-label" data-q="5" data-type="radio" data-value="cost"><span class="opt-icon"></span>興味はあるけど、費用感や内容をまず知りたい</div>
+        <div class="option-label" data-q="5" data-type="radio" data-value="diy"><span class="opt-icon"></span>自分でやろうと思っているが、何をすればいいかわからない</div>
+        <div class="option-label" data-q="5" data-type="radio" data-value="later"><span class="opt-icon"></span>今すぐではないが、今後検討したい</div>
       </div>
       <div class="nav">
         <button class="btn btn-back" onclick="goBack(5)">← 戻る</button>
@@ -605,35 +605,35 @@
 const answers = {};
 const LINE_URL = 'https://lin.ee/XXXXXXXX'; // ← LINEのURLに差し替え
 
-// 選択肢クリック — inputをhiddenにせずopacity:0で重ねてネイティブ動作を使う
-function syncSelection(name) {
-  const inputs = document.querySelectorAll(`input[name="${name}"]`);
-  inputs.forEach(inp => {
-    inp.closest('.option-label').classList.toggle('selected', inp.checked);
-  });
-  const qNum = name.replace('q', '');
-  const btn = document.getElementById(`next-q${qNum}`);
-  if (btn) btn.disabled = !document.querySelector(`input[name="${name}"]:checked`);
-}
+// 選択肢クリック（div+data属性方式 / ブラウザのフォーム動作に依存しない）
+document.querySelectorAll('.option-label').forEach(el => {
+  el.addEventListener('click', function() {
+    const q = this.dataset.q;
+    const type = this.dataset.type;
+    const val = this.dataset.value;
+    const group = document.querySelectorAll(`.option-label[data-q="${q}"]`);
 
-document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
-  input.addEventListener('change', function() {
-    const name = this.name;
-    // noneの排他処理
-    if (this.type === 'checkbox' && this.value === 'none' && this.checked) {
-      document.querySelectorAll(`input[name="${name}"]`).forEach(c => {
-        if (c.value !== 'none') c.checked = false;
-      });
-    } else if (this.type === 'checkbox' && this.value !== 'none' && this.checked) {
-      const noneEl = document.querySelector(`input[name="${name}"][value="none"]`);
-      if (noneEl) noneEl.checked = false;
+    if (type === 'radio') {
+      group.forEach(o => o.classList.remove('selected'));
+      this.classList.add('selected');
+    } else {
+      if (val === 'none') {
+        group.forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+      } else {
+        document.querySelector(`.option-label[data-q="${q}"][data-value="none"]`)?.classList.remove('selected');
+        this.classList.toggle('selected');
+      }
     }
-    syncSelection(name);
+
+    const hasSelection = !!document.querySelector(`.option-label[data-q="${q}"].selected`);
+    const btn = document.getElementById(`next-q${q}`);
+    if (btn) btn.disabled = !hasSelection;
   });
 });
 
 function saveAnswer(q) {
-  answers[`q${q}`] = Array.from(document.querySelectorAll(`input[name="q${q}"]:checked`)).map(i => i.value);
+  answers[`q${q}`] = Array.from(document.querySelectorAll(`.option-label[data-q="${q}"].selected`)).map(el => el.dataset.value);
 }
 
 function updateProgress(current) {
