@@ -203,7 +203,13 @@
     background: rgba(66,133,244,.06);
     font-weight: 600;
   }
-  .option-label input { display: none; }
+  .option-label input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
 
   .opt-icon {
     width: 20px; height: 20px;
@@ -599,35 +605,30 @@
 const answers = {};
 const LINE_URL = 'https://lin.ee/XXXXXXXX'; // ← LINEのURLに差し替え
 
-// 選択肢クリック
-document.querySelectorAll('.option-label').forEach(label => {
-  label.addEventListener('click', function(e) {
-    e.preventDefault();
-    const input = this.querySelector('input');
-    const name = input.name;
+// 選択肢クリック — inputをhiddenにせずopacity:0で重ねてネイティブ動作を使う
+function syncSelection(name) {
+  const inputs = document.querySelectorAll(`input[name="${name}"]`);
+  inputs.forEach(inp => {
+    inp.closest('.option-label').classList.toggle('selected', inp.checked);
+  });
+  const qNum = name.replace('q', '');
+  const btn = document.getElementById(`next-q${qNum}`);
+  if (btn) btn.disabled = !document.querySelector(`input[name="${name}"]:checked`);
+}
 
-    if (input.type === 'radio') {
-      document.querySelectorAll(`input[name="${name}"]`).forEach(r =>
-        r.closest('.option-label').classList.remove('selected'));
-      this.classList.add('selected');
-      input.checked = true;
-    } else {
-      if (input.value === 'none') {
-        document.querySelectorAll(`input[name="${name}"]`).forEach(c => {
-          if (c.value !== 'none') { c.checked = false; c.closest('.option-label').classList.remove('selected'); }
-        });
-        this.classList.toggle('selected');
-        input.checked = this.classList.contains('selected');
-      } else {
-        const noneEl = document.querySelector(`input[name="${name}"][value="none"]`);
-        if (noneEl) { noneEl.checked = false; noneEl.closest('.option-label').classList.remove('selected'); }
-        this.classList.toggle('selected');
-        input.checked = this.classList.contains('selected');
-      }
+document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
+  input.addEventListener('change', function() {
+    const name = this.name;
+    // noneの排他処理
+    if (this.type === 'checkbox' && this.value === 'none' && this.checked) {
+      document.querySelectorAll(`input[name="${name}"]`).forEach(c => {
+        if (c.value !== 'none') c.checked = false;
+      });
+    } else if (this.type === 'checkbox' && this.value !== 'none' && this.checked) {
+      const noneEl = document.querySelector(`input[name="${name}"][value="none"]`);
+      if (noneEl) noneEl.checked = false;
     }
-    const qNum = name.replace('q', '');
-    const btn = document.getElementById(`next-q${qNum}`);
-    if (btn) btn.disabled = !document.querySelector(`input[name="${name}"]:checked`);
+    syncSelection(name);
   });
 });
 
