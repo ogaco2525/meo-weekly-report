@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEO無料診断｜あなたのお店、Googleマップで見つけてもらえてますか？</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #252E4A;
+    --pink: #B86A7B;
+    --teal: #00B7C7;
+    --gray-bg: #F1F2F4;
+    --charcoal: #333333;
+    --border: #E6E6E2;
+    --white: #FFFFFF;
+  }
+
+  body {
+    font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    background: var(--gray-bg);
+    color: var(--charcoal);
+    min-height: 100vh;
+  }
+
+  /* ヘッダー */
+  .hero {
+    background: var(--navy);
+    color: var(--white);
+    text-align: center;
+    padding: 48px 24px 40px;
+  }
+  .hero__label {
+    display: inline-block;
+    background: var(--teal);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: clamp(20px, 5vw, 28px);
+    font-weight: 900;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: var(--teal); }
+  .hero__sub {
+    font-size: 14px;
+    opacity: 0.8;
+    line-height: 1.8;
+  }
+
+  /* メインコンテナ */
+  .container {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+
+  /* プログレスバー */
+  .progress-wrap {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+  }
+  .progress-label {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .progress-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  /* 設問カード */
+  .question-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 28px 24px;
+    border: 1px solid var(--border);
+    display: none;
+  }
+  .question-card.active { display: block; }
+
+  .q-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+  .q-text {
+    font-size: clamp(16px, 4vw, 18px);
+    font-weight: 700;
+    line-height: 1.6;
+    margin-bottom: 8px;
+    color: var(--navy);
+  }
+  .q-note {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 20px;
+  }
+
+  /* 選択肢 */
+  .options { display: flex; flex-direction: column; gap: 10px; }
+
+  .option-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 14px;
+    line-height: 1.5;
+    user-select: none;
+  }
+  .option-label:hover { border-color: var(--teal); background: #f0fafb; }
+  .option-label input { display: none; }
+  .option-label.selected {
+    border-color: var(--teal);
+    background: #e8f9fb;
+    font-weight: 600;
+  }
+  .option-check {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .option-label.selected .option-check {
+    background: var(--teal);
+    border-color: var(--teal);
+  }
+  .option-check::after {
+    content: '';
+    width: 8px; height: 8px;
+    background: white;
+    border-radius: 50%;
+    display: none;
+  }
+  .option-label.selected .option-check::after { display: block; }
+
+  /* 複数選択用チェックボックス */
+  .option-label.checkbox .option-check { border-radius: 4px; }
+  .option-label.checkbox.selected .option-check::after {
+    width: 5px; height: 9px;
+    background: none;
+    border: 2px solid white;
+    border-top: none;
+    border-left: none;
+    border-radius: 0;
+    transform: rotate(45deg) translate(-1px, -1px);
+  }
+
+  /* ナビゲーション */
+  .nav {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    justify-content: flex-end;
+  }
+  .btn {
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+  .btn-back {
+    background: var(--white);
+    color: var(--charcoal);
+    border: 1px solid var(--border);
+  }
+  .btn-back:hover { background: var(--gray-bg); }
+  .btn-next {
+    background: var(--navy);
+    color: white;
+  }
+  .btn-next:hover { background: #1a2138; }
+  .btn-next:disabled { background: #ccc; cursor: not-allowed; }
+
+  /* 結果画面 */
+  #result { display: none; }
+
+  .result-card {
+    background: var(--white);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .result-header {
+    padding: 28px 24px 20px;
+    background: var(--navy);
+    color: white;
+  }
+  .result-header__label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+    margin-bottom: 8px;
+  }
+  .result-header h2 {
+    font-size: clamp(18px, 4.5vw, 22px);
+    font-weight: 900;
+    line-height: 1.5;
+  }
+
+  .result-body { padding: 24px; }
+
+  .score-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--gray-bg);
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+  .score-circle {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: white;
+    font-weight: 900;
+  }
+  .score-circle .score-num { font-size: 22px; line-height: 1; }
+  .score-circle .score-unit { font-size: 10px; opacity: 0.8; }
+  .score-desc { font-size: 13px; line-height: 1.7; color: #555; }
+
+  .result-message {
+    font-size: 15px;
+    line-height: 1.9;
+    margin-bottom: 24px;
+    color: var(--charcoal);
+  }
+
+  .checklist {
+    margin-bottom: 24px;
+  }
+  .checklist-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    color: #444;
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .checklist-item .ic {
+    font-size: 15px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .cta-wrap {
+    background: var(--gray-bg);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .cta-wrap p {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .btn-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 320px;
+    padding: 16px 24px;
+    background: #06C755;
+    color: white;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 900;
+    text-decoration: none;
+    transition: all 0.15s;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-cta:hover { background: #04a844; transform: translateY(-1px); }
+  .btn-cta svg { width: 22px; height: 22px; }
+
+  .retry-btn {
+    margin-top: 12px;
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  /* 不向き結果 */
+  .result-neutral .result-header { background: #555; }
+  .result-neutral .score-circle { background: #888; }
+
+  /* スコア色 */
+  .score-high .score-circle { background: var(--pink); }
+  .score-mid .score-circle { background: #e09a3a; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero__label">無料 MEO診断</div>
+  <h1>あなたのお店、<br><span>Googleマップ</span>で<br>見つけてもらえてますか？</h1>
+  <p class="hero__sub">全5問・約1分で完了。<br>今の状態を確認して、集客の伸びしろがわかります。</p>
+</div>
+
+<div class="container">
+  <!-- プログレス -->
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="progress-text">QUESTION 1 / 5</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- 設問群 -->
+  <div id="questions">
+
+    <!-- Q1 業態 -->
+    <div class="question-card active" id="q1">
+      <div class="q-num">QUESTION 01</div>
+      <div class="q-text">お店の業種を教えてください</div>
+      <div class="q-note">1つ選んでください</div>
+      <div class="options" id="options-q1">
+        <label class="option-label">
+          <input type="radio" name="q1" value="food">
+          <span class="option-check"></span>
+          飲食店（カフェ・ラーメン・居酒屋など）
+        </label>
+        <label class="option-label">
+          <input type="radio" name="q1" value="beauty">
+          <span class="option-check"></span>
+          美容・サロン（美容室・ネイル・まつ毛など）
+        </label>
+        <label class="option-label">
+          <input type="radio" name="q1" value="medical">
+          <span class="option-check"></span>
+          医療・歯科・整体・マッサージ
+        </label>
+        <label class="option-label">
+          <input type="radio" name="q1" value="other_service">
+          <span class="option-check"></span>
+          その他のサービス業（リラクゼーション・学習塾など）
+        </label>
+        <label class="option-label">
+          <input type="radio" name="q1" value="not_local">
+          <span class="option-check"></span>
+          製造業・EC・完全オフィスワーク
+        </label>
+      </div>
+      <div class="nav">
+        <button class="btn btn-next" id="next-q1" disabled onclick="goNext(1)">次へ →</button>
+      </div>
+    </div>
+
+    <!-- Q2 集客課題 -->
+    <div class="question-card" id="q2">
+      <div class="q-num">QUESTION 02</div>
+      <div class="q-text">Googleマップでの集客について、当てはまるものは？</div>
+      <div class="q-note">複数選択OK</div>
+      <div class="options" id="options-q2">
+        <label class="option-label checkbox">
+          <input type="checkbox" name="q2" value="unknown">
+          <span class="option-check"></span>
+          マップから来てくれているのか、よくわからない
+        </label>
+        <label class="option-label checkbox">
+          <input type="checkbox" name="q2" value="low_rank">
+          <span class="option-check"></span>
+          競合店より自店の順位が低い気がする
+        </label>
+        <label class="option-label checkbox">
+          <input type="checkbox" name="q2" value="no_new">
+          <span class="option-check"></span>
+          立地はいいのに、新規客がなかなか来ない
+        </label>
+        <label class="option-label checkbox">
+          <input type="checkbox" name="q2" value="less_contact">
+          <span class="option-check"></span>
+          Googleからの問い合わせや電話が少ない
+        </label>
+        <label class="option-label checkbox">
+          <input type="checkbox" name="q2" value="ok">
+          <span class="option-check"></span>
+          とくに不満はない
+        </label>
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="goBack(2)">← 戻る</button>
+        <button class="btn btn-next" id="next-q2" disabled onclick="goNext(2)">次へ →</button>
+      </div>
+    </div>
+
+    <!-- Q3 基本設定 -->
+    <div class="question-card" id="q3">
+      <div class="q-num">QUESTION 03</div>
+      <div class="q-text">Googleビジネスプロフィールで、今やっていることをすべて選んでください</div>
+      <div class="q-note">複数選択OK（何もできていない場合は最後を選んでください）</div>
+      <div class="options" id="options-q3">
+        <label class="option-label checkbox">
+          <input type="checkbox" name="q3" value="verified">
+          <span class="option-check"></span>
+          オーナー確認（青いチェック）が済んでいる
+        </label>
+        <label class="option-label checkbox">
+          <input type="checkbox" name="q3" value="hours">
+          <span class="option-check"></span>
+          営業時間・定休日を正確に設定している
+        </label>
+        <label class="option-label checkbox">
+          <input type="checkbox" name="q3" value="photos">
+          <span class="option-check"></span>
+          店舗写真を10枚以上載せている
+        </label>
+        <label class="option-label checkbox">
+          <input type="checkbox" name="q3" value="review">
+          <span class="option-check"></span>
+          口コミに全件返信している
+        </label>
+        <label class="option-label checkbox" id="q3-none">
+          <input type="checkbox" name="q3" value="none">
+          <span class="option-check"></span>
+          どれもできていない・よくわからない
+        </label>
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="goBack(3)">← 戻る</button>
+        <button class="btn btn-next" id="next-q3" disabled onclick="goNext(3)">次へ →</button>
+      </div>
+    </div>
+
+    <!-- Q4 投稿頻度 -->
+    <div class="question-card" id="q4">
+      <div class="q-num">QUESTION 04</div>
+      <div class="q-text">Googleビジネスプロフィールへの投稿は、どのくらいやっていますか？</div>
+      <div class="q-note">1つ選んでください</div>
+      <div class="options" id="options-q4">
+        <label class="option-label">
+          <input type="radio" name="q4" value="weekly">
+          <span class="option-check"></span>
+          週1回以上、定期的に投稿している
+        </label>
+        <label class="option-label">
+          <input type="radio" name="q4" value="monthly">
+          <span class="option-check"></span>
+          月1〜2回は更新している
+        </label>
+        <label class="option-label">
+          <input type="radio" name="q4" value="rarely">
+          <span class="option-check"></span>
+          数ヶ月に一度、気が向いたら更新する
+        </label>
+        <label class="option-label">
+          <input type="radio" name="q4" value="never">
+          <span class="option-check"></span>
+          ほとんど投稿していない
+        </label>
+        <label class="option-label">
+          <input type="radio" name="q4" value="unknown">
+          <span class="option-check"></span>
+          投稿機能があることを知らなかった
+        </label>
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="goBack(4)">← 戻る</button>
+        <button class="btn btn-next" id="next-q4" disabled onclick="goNext(4)">次へ →</button>
+      </div>
+    </div>
+
+    <!-- Q5 意向 -->
+    <div class="question-card" id="q5">
+      <div class="q-num">QUESTION 05</div>
+      <div class="q-text">MEO対策について、今どんな状態ですか？</div>
+      <div class="q-note">1つ選んでください</div>
+      <div class="options" id="options-q5">
+        <label class="option-label">
+          <input type="radio" name="q5" value="now">
+          <span class="option-check"></span>
+          すぐにでも取り組みたい
+        </label>
+        <label class="option-label">
+          <input type="radio" name="q5" value="cost">
+          <span class="option-check"></span>
+          興味はあるけど、費用感や内容をまず知りたい
+        </label>
+        <label class="option-label">
+          <input type="radio" name="q5" value="diy">
+          <span class="option-check"></span>
+          自分でやろうと思っているが、何をすればいいかわからない
+        </label>
+        <label class="option-label">
+          <input type="radio" name="q5" value="later">
+          <span class="option-check"></span>
+          今すぐではないが、今後検討したい
+        </label>
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="goBack(5)">← 戻る</button>
+        <button class="btn btn-next" id="next-q5" disabled onclick="showResult()">結果を見る</button>
+      </div>
+    </div>
+
+  </div><!-- /questions -->
+
+  <!-- 結果 -->
+  <div id="result">
+    <div class="result-card" id="result-card">
+      <div class="result-header" id="result-header">
+        <div class="result-header__label">診断結果</div>
+        <h2 id="result-title"></h2>
+      </div>
+      <div class="result-body">
+        <div class="score-wrap" id="score-wrap">
+          <div class="score-circle" id="score-circle">
+            <span class="score-num" id="score-num">0</span>
+            <span class="score-unit">点 / 10点</span>
+          </div>
+          <div class="score-desc" id="score-desc"></div>
+        </div>
+        <div class="result-message" id="result-message"></div>
+        <div class="checklist" id="checklist"></div>
+        <div class="cta-wrap" id="cta-wrap"></div>
+        <div style="text-align:center;">
+          <button class="retry-btn" onclick="restart()">もう一度診断する</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ===== STATE =====
+const answers = {};
+
+// LINE公式アカウントURL（差し替えてください）
+const LINE_URL = 'https://lin.ee/XXXXXXXX';
+
+// ===== 選択肢の制御 =====
+document.querySelectorAll('.option-label').forEach(label => {
+  label.addEventListener('click', function() {
+    const input = this.querySelector('input');
+    const qId = input.name;
+
+    if (input.type === 'radio') {
+      // ラジオ: 同グループのselectedを外す
+      document.querySelectorAll(`input[name="${qId}"]`).forEach(r => {
+        r.closest('.option-label').classList.remove('selected');
+      });
+      this.classList.add('selected');
+      input.checked = true;
+
+    } else {
+      // チェックボックス: 「どれもない」は排他
+      if (input.value === 'none') {
+        document.querySelectorAll(`input[name="${qId}"]`).forEach(c => {
+          if (c.value !== 'none') {
+            c.checked = false;
+            c.closest('.option-label').classList.remove('selected');
+          }
+        });
+        this.classList.toggle('selected');
+        input.checked = this.classList.contains('selected');
+      } else {
+        // 「どれもない」を外す
+        const noneInput = document.querySelector(`input[name="${qId}"][value="none"]`);
+        if (noneInput) {
+          noneInput.checked = false;
+          noneInput.closest('.option-label').classList.remove('selected');
+        }
+        this.classList.toggle('selected');
+        input.checked = this.classList.contains('selected');
+      }
+    }
+
+    updateNextBtn(qId);
+  });
+});
+
+function updateNextBtn(qId) {
+  const qNum = qId.replace('q', '');
+  const btn = document.getElementById(`next-q${qNum}`);
+  const hasAnswer = document.querySelector(`input[name="${qId}"]:checked`);
+  if (btn) btn.disabled = !hasAnswer;
+}
+
+// ===== ナビゲーション =====
+function goNext(currentQ) {
+  saveAnswer(currentQ);
+  document.getElementById(`q${currentQ}`).classList.remove('active');
+  document.getElementById(`q${currentQ + 1}`).classList.add('active');
+  updateProgress(currentQ + 1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goBack(currentQ) {
+  document.getElementById(`q${currentQ}`).classList.remove('active');
+  document.getElementById(`q${currentQ - 1}`).classList.add('active');
+  updateProgress(currentQ - 1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function saveAnswer(q) {
+  const inputs = document.querySelectorAll(`input[name="q${q}"]:checked`);
+  answers[`q${q}`] = Array.from(inputs).map(i => i.value);
+}
+
+function updateProgress(currentQ) {
+  const pct = Math.round(((currentQ - 1) / 5) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `QUESTION ${currentQ} / 5`;
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+
+// ===== 結果表示 =====
+function showResult() {
+  saveAnswer(5);
+  document.getElementById('questions').style.display = 'none';
+  document.querySelector('.progress-wrap').style.display = 'none';
+  document.getElementById('result').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // スコア計算
+  const q1 = answers.q1 ? answers.q1[0] : '';
+  const q3 = answers.q3 || [];
+  const q4 = answers.q4 ? answers.q4[0] : '';
+  const q5 = answers.q5 ? answers.q5[0] : '';
+
+  // MEO向きでない業態
+  if (q1 === 'not_local') {
+    renderNeutral();
+    return;
+  }
+
+  // スコア計算（10点満点）
+  let score = 0;
+  if (q3.includes('verified')) score += 2;
+  if (q3.includes('hours')) score += 2;
+  if (q3.includes('photos')) score += 2;
+  if (q3.includes('review')) score += 2;
+  if (q4 === 'weekly') score += 2;
+  else if (q4 === 'monthly') score += 1;
+
+  renderResult(score, q5);
+}
+
+function renderResult(score, intent) {
+  const card = document.getElementById('result-card');
+  const circle = document.getElementById('score-circle');
+
+  document.getElementById('score-num').textContent = score;
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('progress-text').textContent = 'QUESTION 5 / 5';
+  document.getElementById('progress-pct').textContent = '100%';
+
+  let title, desc, message, ctaText, ctaNote, items;
+
+  if (score >= 8) {
+    // 良い状態
+    card.className = 'result-card';
+    circle.style.background = '#4caf84';
+    title = '基本は整っています。あとは"継続"が差になります';
+    desc = `スコア ${score}/10点。Googleが評価しやすい土台はできています。次は競合との差を広げる段階です。`;
+    message = `基本設定はしっかりできています。\nこの状態から順位を上げるには、投稿の質と頻度・口コミへの返信スピードが鍵になります。\n「やること自体はわかってるけど時間がない」という方がほとんどです。`;
+    items = [
+      { ok: true, text: '基本設定・写真・口コミ返信が整っている' },
+      { ok: false, text: '投稿の継続・競合分析・KPI管理が次のステップ' },
+    ];
+    ctaNote = '今の状態から数値をどう伸ばせるか、一度具体的に話しましょう。';
+    ctaText = intent === 'now' || intent === 'cost' ? '無料で相談する' : '話だけ聞いてみる';
+  } else if (score >= 4) {
+    // 中間
+    card.className = 'result-card score-mid';
+    circle.style.background = '#e09a3a';
+    title = 'まだ伸びる余地が残っています';
+    desc = `スコア ${score}/10点。基本が一部できていますが、Googleの評価が上がりきっていない状態です。`;
+    message = `できていない項目を1つずつ整えるだけで、検索順位は変わります。\nとくに「口コミ全件返信」と「週1〜2回の定期投稿」は、Googleが店舗を評価する上で大きく影響します。\n2〜3ヶ月で数値に変化が出てくることが多いです。`;
+    items = getMissingItems();
+    ctaNote = '何から手をつければいいか、具体的にお伝えします。';
+    ctaText = intent === 'now' || intent === 'cost' ? '無料で相談する' : '話だけ聞いてみる';
+  } else {
+    // 低スコア
+    card.className = 'result-card score-high';
+    circle.style.background = '#B86A7B';
+    title = '今すぐ整えれば、集客が変わる可能性があります';
+    desc = `スコア ${score}/10点。Googleが店舗を評価するための情報が、まだほとんど揃っていない状態です。`;
+    message = `整えるべきことが複数残っています。\nただ、裏を返すとそれだけ伸びしろがある状態です。\n基本設定→写真→定期投稿→口コミ返信の順で整えると、3ヶ月で数値が動き始めることが多いです。`;
+    items = getMissingItems();
+    ctaNote = '何から手をつければいいか、一度具体的にお話しします。費用感もここで確認できます。';
+    ctaText = '無料で相談する';
+  }
+
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('score-desc').textContent = desc;
+  document.getElementById('result-message').innerHTML = message.replace(/\n/g, '<br>');
+
+  // チェックリスト
+  const cl = document.getElementById('checklist');
+  if (items.length > 0) {
+    cl.innerHTML = `<div class="checklist-title">今の状態チェック</div>` +
+      items.map(it => `<div class="checklist-item"><span class="ic">${it.ok ? '✅' : '⚠️'}</span><span>${it.text}</span></div>`).join('');
+  }
+
+  // CTA
+  const ctaWrap = document.getElementById('cta-wrap');
+  if (intent === 'later') {
+    ctaWrap.innerHTML = `<p>今すぐでなくて大丈夫です。<br>現状の整理だけでも、気になる方はお気軽にどうぞ。</p>
+      <a class="btn-cta" href="${LINE_URL}" target="_blank">${lineIcon()}LINEで相談してみる</a>`;
+  } else {
+    ctaWrap.innerHTML = `<p>${ctaNote}</p>
+      <a class="btn-cta" href="${LINE_URL}" target="_blank">${lineIcon()}${ctaText}</a>`;
+  }
+}
+
+function renderNeutral() {
+  const card = document.getElementById('result-card');
+  card.className = 'result-card result-neutral';
+  document.getElementById('score-wrap').style.display = 'none';
+  document.getElementById('result-title').textContent = 'まずはご相談ください';
+  document.getElementById('result-message').innerHTML =
+    'MEOは「地図から来てもらう」来店型ビジネスが主な対象です。<br>製造業やECの場合、効果が限定的なことがあります。<br><br>ただ、ビジネスの形によっては活用できるケースもあるので、一度話を聞いてみてください。向いているかどうかを正直にお伝えします。';
+  document.getElementById('checklist').innerHTML = '';
+  document.getElementById('cta-wrap').innerHTML =
+    `<p>まず話だけでも大丈夫です。</p>
+    <a class="btn-cta" href="${LINE_URL}" target="_blank">${lineIcon()}相談してみる</a>`;
+}
+
+function getMissingItems() {
+  const q3 = answers.q3 || [];
+  const q4 = answers.q4 ? answers.q4[0] : '';
+  const items = [];
+  if (q3.includes('verified')) items.push({ ok: true, text: 'オーナー確認済み' });
+  else items.push({ ok: false, text: 'オーナー確認がまだ — Googleが正式に店舗として認識できていない状態' });
+  if (q3.includes('hours')) items.push({ ok: true, text: '営業時間・定休日の設定済み' });
+  else items.push({ ok: false, text: '営業時間が未設定または古い — 「現在営業中かわからない」で離脱される' });
+  if (q3.includes('photos')) items.push({ ok: true, text: '店舗写真10枚以上あり' });
+  else items.push({ ok: false, text: '写真が少ない — 写真が多い店舗ほどクリック率が上がる' });
+  if (q3.includes('review')) items.push({ ok: true, text: '口コミに全件返信している' });
+  else items.push({ ok: false, text: '口コミ返信ができていない — Googleが活発な店舗として評価するサインを逃している' });
+  if (q4 === 'weekly' || q4 === 'monthly') items.push({ ok: true, text: '定期的に投稿できている' });
+  else items.push({ ok: false, text: '投稿が止まっている — 更新のない店舗はGoogleの評価が下がりやすい' });
+  return items;
+}
+
+function lineIcon() {
+  return `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+    <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.346 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+  </svg>`;
+}
+
+function restart() {
+  // リセット
+  Object.keys(answers).forEach(k => delete answers[k]);
+  document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(i => {
+    i.checked = false;
+    i.closest('.option-label').classList.remove('selected');
+  });
+  document.querySelectorAll('[id^="next-q"]').forEach(btn => btn.disabled = true);
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('questions').style.display = 'block';
+  document.querySelector('.progress-wrap').style.display = 'block';
+  document.querySelectorAll('.question-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('q1').classList.add('active');
+  updateProgress(1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
